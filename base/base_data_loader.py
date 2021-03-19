@@ -1,16 +1,18 @@
 import numpy as np
+import torch.tensor
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
-
+from torch.utils.data.sampler import WeightedRandomSampler
 
 class BaseDataLoader(DataLoader):
     """
     Base class for all data loaders
     """
-    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate):
+    def __init__(self, dataset, batch_size, shuffle, validation_split, weighted_sample, num_workers, collate_fn=default_collate):
         self.validation_split = validation_split
         self.shuffle = shuffle
+        self.weighted_sample = weighted_sample
 
         self.batch_idx = 0
         self.n_samples = len(dataset)
@@ -45,7 +47,18 @@ class BaseDataLoader(DataLoader):
         valid_idx = idx_full[0:len_valid]
         train_idx = np.delete(idx_full, np.arange(0, len_valid))
 
-        train_sampler = SubsetRandomSampler(train_idx)
+        if self.weighted_sample:
+            # weighted random sampler reworked to also generate a validation set
+            # adapted from https://discuss.pytorch.org/t/dataloader-using-subsetrandomsampler-and-weightedrandomsampler-at-the-same-time/29907/17
+            class_sample_count = torch.tensor([(torch.tensor(self.dataset.targets) == t).sum() for t in np.unique(self.dataset.targets)])
+            class_weights = 1 / class_sample_count.float()
+            sample_weights = torch.tensor([class_weights[t] for t in self.dataset.targets])
+            # cannot draw from the validation data
+            sample_weights[valid_idx] = 0.0
+            train_sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
+        else:
+            train_sampler = SubsetRandomSampler(train_idx)
+            
         valid_sampler = SubsetRandomSampler(valid_idx)
 
         # turn off shuffle option which is mutually exclusive with sampler

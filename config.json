@@ -7,13 +7,32 @@
         "args": {}
     },
     "data_loader": {
-        "type": "MnistDataLoader",
+        "type": "BirdsongDataLoader",
         "args":{
-            "data_dir": "data/",
+            "data_dir": "data/download",
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
-            "num_workers": 2
+            "weighted_sample": true,
+            "num_workers": 2,
+            "n_fft": 400,
+            "time_slice": 10,
+            "resample_rate": 22050 
+        }
+    },
+    "dataset_builder":{
+        "build_dataset": true,
+        "type": "XenoCommonBirds",
+        "args":{
+            "download_data_dir": "data/download",
+            "split_data_dir": "data/split",
+            "location": "Texas",
+            "num_birds": 2,
+            "metadata_filename": "metadata.csv",
+            "split": true,
+            "train_split": 0.7,
+            "test_split": 0.15,
+            "num_workers": 1
         }
     },
     "optimizer": {
