@@ -3,7 +3,8 @@ import collections
 import torch
 import numpy as np
 import data_loader.data_loaders as module_data
-import data_loader.download_xeno as module_downloader
+import data_loader.datasets as module_dataset
+import data_loader.preprocessors as module_preprocessor
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
@@ -13,7 +14,8 @@ from utils import prepare_device
 
 
 # fix random seeds for reproducibility
-SEED = 123
+# SEED = 123
+SEED = 1234
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -21,19 +23,25 @@ np.random.seed(SEED)
 
 def main(config):
     logger = config.get_logger('train')
-
     # setup data_loader instances
-    if config["dataset_builder"]["build_dataset"]:
-        data_builder = config.init_obj('dataset_builder', module_downloader)
-        data_builder.download_n_common_birds()
-        assert data_builder.files_present()
-        # data_builder.split_folders()
+    preprocessor = config.init_obj('preprocessor', module_preprocessor)
+    train_dataset = config.init_obj('dataset', module_dataset, preprocessor, mode = 'xeno', vanilla = True)
+    #test_dataset = config.init_obj('dataset', module_dataset, preprocessor, mode = 'soundscape', vanilla = True)
 
-    data_loader = config.init_obj('data_loader', module_data)
-    valid_data_loader = data_loader.split_validation()
+    print("Done with datasets")
+    train_data_loader = config.init_obj('data_loader', module_data, train_dataset)
+    valid_data_loader = train_data_loader.split_validation()
+    #test_data_loader = config.init_obj('data_loader', module_data, test_dataset)
+
 
     # build model architecture, then print to console
-    model = config.init_obj('arch', module_arch)
+    if config['arch']['type'] == 'PretrainedModel':
+        wrap = config.init_obj('arch', module_arch)
+        model = wrap.get_model()
+    else:
+        model = config.init_obj('arch', module_arch)
+
+        
     logger.info(model)
 
     # prepare for (multi-device) GPU training
@@ -54,7 +62,7 @@ def main(config):
     trainer = Trainer(model, criterion, metrics, optimizer,
                       config=config,
                       device=device,
-                      data_loader=data_loader,
+                      data_loader=train_data_loader,
                       valid_data_loader=valid_data_loader,
                       lr_scheduler=lr_scheduler)
 

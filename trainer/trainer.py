@@ -44,6 +44,7 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
+            output = output.sigmoid()
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()

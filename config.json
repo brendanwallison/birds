@@ -1,38 +1,48 @@
 {
-    "name": "Mnist_LeNet",
+    "name": "Birdsong_Kaggle",
     "n_gpu": 1,
 
     "arch": {
-        "type": "MnistModel",
-        "args": {}
-    },
-    "data_loader": {
-        "type": "BirdsongDataLoader",
-        "args":{
-            "data_dir": "data/download",
-            "batch_size": 128,
-            "shuffle": true,
-            "validation_split": 0.1,
-            "weighted_sample": true,
-            "num_workers": 2,
-            "n_fft": 400,
-            "time_slice": 10,
-            "resample_rate": 22050 
+        "type": "PretrainedModel",
+        "args": {
+            "num_classes": 397,
+            "name": "resnest50"
         }
     },
-    "dataset_builder":{
-        "build_dataset": true,
-        "type": "XenoCommonBirds",
+    "preprocessor":{
+        "type": "MelSpecComputer",
         "args":{
-            "download_data_dir": "data/download",
-            "split_data_dir": "data/split",
-            "location": "Texas",
-            "num_birds": 2,
-            "metadata_filename": "metadata.csv",
-            "split": true,
-            "train_split": 0.7,
-            "test_split": 0.15,
-            "num_workers": 1
+            "n_mels": 128,
+            "n_fft": 1600,
+            "f_min": 0,
+            "f_max": 16000,
+            "time_slice": 7,
+            "resample_rate": 32000,
+            "raw_data_dir": "data/download",
+            "processed_data_dir": "data/processed",
+            "bulk_process": true,
+            "split_files": true,
+            "active": true,
+            "extensions": ".ogg"
+        }
+    },
+    "dataset":{
+        "type": "birdclef2",
+        "args":{
+            "download": false,
+            "data_dir": "data/processed",
+            "from_file": true,
+            "alpha": 1
+        }
+    },
+    "data_loader": {
+        "type": "PickledSpectrogramLoader",
+        "args":{
+            "batch_size": 128,
+            "shuffle": false,
+            "validation_split": 0.2,
+            "weighted_sample": false,
+            "num_workers": 4
         }
     },
     "optimizer": {
@@ -43,9 +53,9 @@
             "amsgrad": true
         }
     },
-    "loss": "nll_loss",
+    "loss": "BCE_loss",
     "metrics": [
-        "accuracy", "top_k_acc"
+        "tp", "fp", "fn", "tn"
     ],
     "lr_scheduler": {
         "type": "StepLR",

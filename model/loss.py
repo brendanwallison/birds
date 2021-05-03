@@ -1,5 +1,8 @@
+import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
-
-def nll_loss(output, target):
-    return F.nll_loss(output, target)
+# add weights later
+def BCE_loss(output, target):
+    loss = nn.BCELoss()
+    return loss(output, target)

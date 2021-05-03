@@ -105,6 +105,10 @@ data/
 input/
 saved/
 datasets/
+image_samples/
+
+#API Keys
+.kaggle
 
 # editor, os cache directory
 .vscode/

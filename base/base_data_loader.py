@@ -47,17 +47,19 @@ class BaseDataLoader(DataLoader):
         valid_idx = idx_full[0:len_valid]
         train_idx = np.delete(idx_full, np.arange(0, len_valid))
 
-        if self.weighted_sample:
-            # weighted random sampler reworked to also generate a validation set
-            # adapted from https://discuss.pytorch.org/t/dataloader-using-subsetrandomsampler-and-weightedrandomsampler-at-the-same-time/29907/17
-            class_sample_count = torch.tensor([(torch.tensor(self.dataset.targets) == t).sum() for t in np.unique(self.dataset.targets)])
-            class_weights = 1 / class_sample_count.float()
-            sample_weights = torch.tensor([class_weights[t] for t in self.dataset.targets])
-            # cannot draw from the validation data
-            sample_weights[valid_idx] = 0.0
-            train_sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
-        else:
-            train_sampler = SubsetRandomSampler(train_idx)
+        # # weighted sampler not working yet
+        # if self.weighted_sample:
+        #     # weighted random sampler reworked to also generate a validation set
+        #     # adapted from https://discuss.pytorch.org/t/dataloader-using-subsetrandomsampler-and-weightedrandomsampler-at-the-same-time/29907/17
+        #     class_sample_count = torch.tensor([(torch.tensor(self.dataset.targets) == t).sum() for t in np.unique(self.dataset.targets)])
+        #     class_weights = 1 / class_sample_count.float()
+        #     sample_weights = torch.tensor([class_weights[t] for t in self.dataset.targets])
+        #     # cannot draw from the validation data
+        #     sample_weights[valid_idx] = 0.0
+        #     train_sampler = WeightedRandomSampler(sample_weights, len(sample_weights))
+        # else:
+        
+        train_sampler = SubsetRandomSampler(train_idx)
             
         valid_sampler = SubsetRandomSampler(valid_idx)
 
