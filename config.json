@@ -20,7 +20,7 @@
             "resample_rate": 32000,
             "raw_data_dir": "data/download",
             "processed_data_dir": "data/processed",
-            "bulk_process": true,
+            "bulk_process": false,
             "split_files": true,
             "active": true,
             "extensions": ".ogg"
