@@ -1,6 +1,6 @@
 import torch
 import sklearn.metrics as metric
-THRESHOLD = 0.2
+THRESHOLD = 0.25
 
 def accuracy(output, target):
     with torch.no_grad():
@@ -48,9 +48,24 @@ def recall(output, target):
     return recall
 
 def f1(output, target):
-    prec = precision(output, target)
-    rec = recall(output, target)
-    return 2*(prec*rec)/(prec+rec)
+    pred = torch.where(output > THRESHOLD, 1, 0)
+    label = torch.where(target > THRESHOLD, 1, 0)
+    batch = zip(pred, label)
+    batchsize = pred.shape[0]
+    prec_tally = 0
+    rec_tally = 0
+    for item in batch:
+        if torch.equal(item[0], item[1]):
+            prec_tally += 1
+            rec_tally += 1
+        else:
+            pred_positives = torch.sum(item[0])
+            label_positives = torch.sum(item[1])
+            true_positives = torch.sum(item[0] * item[1])   
+            prec_tally += true_positives/(1e-6 + pred_positives)
+            rec_tally += true_positives/(1e-6 + label_positives)
+    f1_tally = (2 * prec_tally * rec_tally)/(1e-6 + prec_tally + rec_tally)
+    return f1_tally/batchsize
 
 
 def tp(output, target):

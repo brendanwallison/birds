@@ -13,7 +13,8 @@
         "type": "MelSpecComputer",
         "args":{
             "n_mels": 128,
-            "n_fft": 1600,
+            "n_fft": 3200,
+            "hop_length": 800,
             "f_min": 0,
             "f_max": 16000,
             "time_slice": 7,
@@ -30,19 +31,19 @@
         "type": "birdclef2",
         "args":{
             "download": false,
-            "data_dir": "data/processed",
-            "from_file": true,
+            "data_dir": "data/download",
+            "from_file": false,
             "alpha": 1
         }
     },
     "data_loader": {
         "type": "PickledSpectrogramLoader",
         "args":{
-            "batch_size": 128,
+            "batch_size": 1,
             "shuffle": false,
-            "validation_split": 0.2,
+            "validation_split": 0,
             "weighted_sample": false,
-            "num_workers": 4
+            "num_workers": 1
         }
     },
     "optimizer": {
@@ -55,7 +56,7 @@
     },
     "loss": "BCE_loss",
     "metrics": [
-        "tp", "fp", "fn", "tn"
+        "tp", "fp", "fn", "tn", "f1"
     ],
     "lr_scheduler": {
         "type": "StepLR",

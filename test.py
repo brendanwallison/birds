@@ -22,6 +22,7 @@ def load_net(checkpoint_path, num_classes=397, device = torch.device("cpu")):
     d = torch.load(checkpoint_path, map_location=dummy_device)
     for key in list(d.keys()):
         d[key.replace("model.", "")] = d.pop(key)
+    #net.load_state_dict(d['state_dict'])
     net.load_state_dict(d)
     net = net.to(device)
     net = net.eval()
@@ -86,6 +87,7 @@ def main(config):
             data, target = data.to(device), target.to(device)
             output = model(data)
             output = torch.sigmoid(output)
+            submission = test_dataset.prediction_string(output, target)
             #outputs.append(output)
             #targets.append(target)
 

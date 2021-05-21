@@ -1,4 +1,5 @@
 from torchvision import datasets, transforms
+from torchvision.transforms import functional as TF
 from base import BaseDataLoader
 from six.moves import urllib
 from parse_config import ConfigParser
@@ -65,7 +66,8 @@ class PickledSpectrogramLoader(BaseDataLoader):
                     # RandomImage(),
                     ThreeChannel(),
                     AxisOrderChange(),
-                    NumpyStackToTensors()
+                    NumpyStackToTensors(),
+                    Crop()
                     #transforms.ToTensor(),
                     #transforms.RandomCrop(size = (self.vertical_crop, self.horizontal_crop), pad_if_needed=True, padding_mode = 'constant')
                 ])
@@ -114,4 +116,8 @@ class AxisOrderChange(object):
     def __call__(self, sample):
         sample = np.moveaxis(sample, 0, -1)
         return sample
+
+class Crop(object):
+    def __call__(self, sample):
+        return TF.crop(sample, top = 0, left = 0, height = 128, width = 201)
                      

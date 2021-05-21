@@ -7,7 +7,7 @@ import numpy as np
 
 # Adapted from https://www.kaggle.com/kneroma/clean-fast-simple-bird-identifier-inference
 class MelSpecComputer (BasePreprocessor):
-    def __init__(self, n_mels, n_fft, f_min, f_max, time_slice, resample_rate, raw_data_dir, processed_data_dir, bulk_process, split_files, active, extensions=None, **kwargs):
+    def __init__(self, n_mels, n_fft, hop_length, f_min, f_max, time_slice, resample_rate, raw_data_dir, processed_data_dir, bulk_process, split_files, active, extensions=None, **kwargs):
         self.sr = resample_rate
         self.n_mels = n_mels
         self.fmin = f_min
@@ -20,6 +20,7 @@ class MelSpecComputer (BasePreprocessor):
         self.split_files = split_files
         self.active = active
         #self.n_fft = n_fft
+        #self.hop_length = hop_length
         self.n_fft = self.sr//10
         self.hop_length = self.sr//(10*4)
         #kwargs["n_fft"] = kwargs.get("n_fft", self.n_fft)

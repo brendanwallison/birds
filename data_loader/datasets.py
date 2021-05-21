@@ -48,7 +48,7 @@ class birdclef2:
             if preprocessor.bulk_process:
                 self.from_file = True  
 
-        if self.from_file:
+        if self.from_file and self.mode == 'xeno':
             #self.meta['new_filename'] = self.meta['filename'] + '.npy'
             self.meta['new_filename'] = [os.path.splitext(filename)[0] + '.pickle' for filename in self.meta['filename']]
             print("Updated filenames")
@@ -120,9 +120,9 @@ class birdclef2:
     
     def get_image_item(self, idx):
         row = self.meta.loc[idx, :]
+        dir = self.append_folder(self.data_dir)
         if self.mode == 'xeno':
             primary = row['primary_label']
-            dir = self.append_folder(self.data_dir)
             fp = os.path.join(dir, primary, row['new_filename'])
             if self.data_dir == 'data/external':
                 item = np.load(fp)
@@ -134,16 +134,20 @@ class birdclef2:
             id = str(row['audio_id'])
             site = str(row['site'])
             expression = id + '_' + site + '*'
-            filename = fnmatch.filter(os.listdir(self.data_dir), expression)
-            path = os.path.join(self.data_dir, filename[0])
-            end_time = row['seconds']
-            start_time = end_time - self.time_slice
-            if start_time > 0:
-                start_pixel = self.sp(start_time)
-            else:
-                start_pixel = 0
-            end_pixel = start_pixel + self.sp(time_slice)
-            item = np.load(path)[:, start_pixel:end_pixel]
+            filename = fnmatch.filter(os.listdir(dir), expression)
+            filename = fnmatch.filter(filename, '*.pickle')
+            path = os.path.join(dir, filename[0])
+            # # This was used when were loading one big spectrogram
+            # # as opposed to a stack of melspecs
+            # end_time = row['seconds']
+            # start_time = end_time - self.time_slice
+            # if start_time > 0:
+            #     start_pixel = self.sp(start_time)
+            # else:
+            #     start_pixel = 0
+            # end_pixel = start_pixel + self.sp(self.time_slice)
+            # item = np.load(path)[:, start_pixel:end_pixel]
+            item = np.load(path)
         return item
 
     def get_audio_item(self, idx):
@@ -203,8 +207,8 @@ class birdclef2:
                 label_list = 'nocall '
             if pred_list == '':
                 pred_list = 'nocall '
-            pred_list = pred_list[:-1]
-            label_list = label_list[:-1]
+            # pred_list = pred_list[:-1]
+            # label_list = label_list[:-1]
             df.iloc[i,0] = pred_list
             df.iloc[i,1] = label_list
         return df
