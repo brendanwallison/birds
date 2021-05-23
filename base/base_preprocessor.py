@@ -11,8 +11,8 @@ class BasePreprocessor:
         self.output_dir = output_dir
         self.overwrite_files = overwrite_files
         self.extensions = extensions or ['.ogg']
-        if(bulk_process):
-            self.bulk_processor(data_dir, extensions)
+        # if(bulk_process):
+        #     self.bulk_processor(data_dir, extensions)
 
     def folder_crawl(self, data_dir, extensions):
         count = 0

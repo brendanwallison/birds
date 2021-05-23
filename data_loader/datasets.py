@@ -44,16 +44,23 @@ class birdclef2:
         if download:
             self.download()
         if preprocessor != None:
-            self.horizontal_crop = 2 * preprocessor.time_slice * preprocessor.resample_rate // preprocessor.n_fft + 1
+            #self.horizontal_crop = 2 * preprocessor.time_slice * preprocessor.resample_rate // preprocessor.n_fft + 1
+            self.horizontal_crop = preprocessor.time_slice * preprocessor.resample_rate // preprocessor.hop_length + 1
+            self.vertical_crop = preprocessor.n_mels
             if preprocessor.bulk_process:
                 self.from_file = True  
+                preprocessor.bulk_process_downloaded_files()
+            self.data_dir = preprocessor.processed_data_dir
+            self.split_files = preprocessor.split_files
+        else:
+            self.vertical_crop = 128
+            self.horizontal_crop = 231
 
         if self.from_file and self.mode == 'xeno':
             #self.meta['new_filename'] = self.meta['filename'] + '.npy'
             self.meta['new_filename'] = [os.path.splitext(filename)[0] + '.pickle' for filename in self.meta['filename']]
             print("Updated filenames")
-        # else:
-        #     self.horizontal_crop = 256
+
 
     def append_folder(self, path):
         if self.mode == "xeno":
@@ -72,7 +79,7 @@ class birdclef2:
             return len(self.group_meta.size())
         return self.meta.shape[0]
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, no_transform = False):
         if self.mode == 'soundscape':
             groupname = self.group_meta.first().iloc[idx,:].name
             start_idx = self.group_meta.groups[groupname][0]
@@ -88,8 +95,11 @@ class birdclef2:
         else:
             item = self.get_audio_item(idx)
 
-        for trsfm in self.transform:
-            item = trsfm(item)
+        if not no_transform:
+            for trsfm in self.transform:
+                tmp = trsfm((item, label))
+                item = tmp[0]
+                label = tmp[1]
         return (item, label)
 
     # inspired by https://www.kaggle.com/kneroma/clean-fast-simple-bird-identifier-training-colab   
@@ -104,7 +114,7 @@ class birdclef2:
             primaries = row['birds'].split(' ')
         a = self.alpha/self.num_classes
         if self.vanilla:
-            t = torch.zeros([self.num_classes]) + a  
+            t = torch.zeros([self.num_classes]) + a/self.__len__()  
             for primary in primaries: 
                 if primary == 'nocall':
                     break
@@ -113,7 +123,7 @@ class birdclef2:
             for secondary in secondaries:
                 secondary_index = self.labels.get(secondary)
                 if secondary_index:
-                    t[secondary_index] = 0.5*(1 - a)
+                    t[secondary_index] = 0.25*(1 - a)
         else:
             t = t
         return t
@@ -222,12 +232,12 @@ class birdclef2:
     def download(self):
         owd = os.getcwd()
         try:
-            pathlib.Path(self.download_data_dir).mkdir(parents=True, exist_ok=True)
+            pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
         except OSError as error:
             if error.errno != errno.EEXIST:
                 raise
             pass
-        download = 'kaggle competitions download -c birdclef-2021 -p ' + os.path.join(owd, self.download_data_dir)
+        download = 'kaggle competitions download -c birdclef-2021 -p ' + os.path.join(owd, self.data_dir)
         successful_download = os.system(download)      
         if successful_download != 0:
             folder_path = self.findKaggle()
@@ -235,10 +245,10 @@ class birdclef2:
             found_kaggle_folder = os.system(cmd)   
             if found_kaggle_folder == 0:
                 os.system(download)    
-        expected_fp = os.path.join(self.download_data_dir, 'birdclef-2021.zip')
+        expected_fp = os.path.join(self.data_dir, 'birdclef-2021.zip')
         if os.path.exists(expected_fp):
             with zipfile.ZipFile(expected_fp, 'r') as zip_ref:
-                zip_ref.extractall(self.download_data_dir)
+                zip_ref.extractall(self.data_dir)
 
 
 

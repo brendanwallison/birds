@@ -29,7 +29,7 @@ class MelSpecComputer (BasePreprocessor):
 
         # if bulk_process is true, will process all files in raw_data_dir on init. 
         # See BaseProcessor for implementation details
-        super().__init__(raw_data_dir, processed_data_dir, overwrite_files, bulk_process, extensions)
+        super().__init__(raw_data_dir, processed_data_dir, overwrite_files, extensions)
 
     def process(self, fp, split_files=None):
         audio, orig_sr = sf.read(fp, dtype="float32")
@@ -93,10 +93,10 @@ class MelSpecComputer (BasePreprocessor):
 
         return y
 
-    # def bulk_processor(self, data_dir, extensions):
-    #     if self.active:
-    #         super().folder_crawl(data_dir, extensions)
-    #     return self.processed_data_dir
+    def bulk_process_downloaded_files(self):
+        if self.active:
+            super().bulk_processor(self.raw_data_dir, self.extensions)
+        return self.processed_data_dir
         
 
 class MelSpecMaker (BasePreprocessor):

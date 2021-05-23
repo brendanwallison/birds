@@ -22,7 +22,7 @@
             "raw_data_dir": "data/download",
             "processed_data_dir": "data/processed",
             "bulk_process": false,
-            "split_files": true,
+            "split_files": false,
             "active": true,
             "extensions": ".ogg"
         }
@@ -32,18 +32,18 @@
         "args":{
             "download": false,
             "data_dir": "data/download",
-            "from_file": false,
+            "from_file": true,
             "alpha": 1
         }
     },
     "data_loader": {
-        "type": "PickledSpectrogramLoader",
+        "type": "SpectrogramLoader",
         "args":{
-            "batch_size": 1,
-            "shuffle": false,
-            "validation_split": 0,
+            "batch_size": 120,
+            "shuffle": true,
+            "validation_split": 20,
             "weighted_sample": false,
-            "num_workers": 1
+            "num_workers": 4
         }
     },
     "optimizer": {
